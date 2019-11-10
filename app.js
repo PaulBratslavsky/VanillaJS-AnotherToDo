@@ -16,6 +16,9 @@ loadEventListeners();
 ******************************************/
 
 function loadEventListeners() {
+    // DOM Load Event Listener
+    document.addEventListener('DOMContentLoaded', getTasks);
+
     // Add Task Form Even Listener
     form.addEventListener('submit', addTask);
 
@@ -42,29 +45,16 @@ function addTask(e) {
         const task = document.createElement('li');
         task.className = 'collection-item';
 
-        // Create Text Node 
-        const text = document.createTextNode(taskInput.value);
-
-
-        // Add Task Node to li
-        task.appendChild(text);
-
-        // Create Delete Task Button Link
-        const deleteTask = document.createElement('a')
-        deleteTask.className ='delete-item secondary-content';
-        deleteTask.style.cursor = 'pointer';
-
-        deleteTask.innerHTML = '<i class="fa fa-remove"></i>';
-
-        // Add Delete Btn to Li
-        task.appendChild(deleteTask);
-
-
-        // Add Task to Collection
-        tasks.appendChild(task);
+        // Create Dom Element
+        creatElementTask(taskInput.value);
         
+        // Add to local
+        storeTaskInLocalStorage(taskInput.value);
+
         // Reset Input
         taskInput.value = '';
+
+        
     }
 
     
@@ -85,6 +75,9 @@ function removeTask(e) {
         if ( confirm(message) ) {
             // Remove li from the ul
             selected.parentElement.remove();
+
+            // Remove Item From Local Storage
+            removeTaskFromLocalStorage(selected.parentElement);
         }     
 
     }
@@ -118,6 +111,8 @@ function removeAllTasks () {
         tasks.removeChild(tasks.firstChild);
     }
 
+    clearAllTasks();
+
 }
 
 /******************************************
@@ -125,7 +120,6 @@ function removeAllTasks () {
 ******************************************/
 function filterTasks(e) {
     
-    console.log('filter');
     const text = e.target.value.toLowerCase();
     
     // No need to convert to array when use querySelectorAll because returns node list not HTML collection
@@ -134,13 +128,118 @@ function filterTasks(e) {
 
         const currentItemText = item.firstChild.textContent;
 
+        
+        // Display Filtered Data
         if (currentItemText.toLowerCase().indexOf(text) != -1 ) {
-            tasks.style.display = "block";
+            item.style.display = 'block';
         } else {
-            tasks.style.display = "none";
-
+            item.style.display = 'none';
         }
+        
+        
+    
     })   
     // 
 
 }
+
+/******************************************
+    Store in Local storage
+******************************************/
+function storeTaskInLocalStorage(task) {
+
+
+    let items = '';
+
+    if (localStorage.getItem('tasks') === null) {
+        items = [];
+    } else {
+        items = JSON.parse(localStorage.getItem('tasks'));
+    }
+
+    items.push(task);
+
+    // Saves data to local storage
+    localStorage.setItem('tasks', JSON.stringify(items));
+
+    console.log(task, 'Will be stored.');
+
+}
+/******************************************
+    Get Tasks
+******************************************/
+function getTasks() {
+
+    let items = '';
+
+    if (localStorage.getItem('tasks') === null) {
+        items = [];
+    } else {
+        items = JSON.parse(localStorage.getItem('tasks'));
+    }
+
+    items.forEach( (item) => {
+        creatElementTask(item);
+        console.log(item)
+    });
+
+    console.log('Task Retrieved', items);
+
+}
+
+function creatElementTask(taskItem) {
+    // Create li Element
+    const task = document.createElement('li');
+    task.className = 'collection-item';
+
+    // Create Text Node 
+    const text = document.createTextNode(taskItem);
+
+
+    // Add Task Node to li
+    task.appendChild(text);
+
+    // Create Delete Task Button Link
+    const deleteTask = document.createElement('a')
+    deleteTask.className ='delete-item secondary-content';
+    deleteTask.style.cursor = 'pointer';
+
+    deleteTask.innerHTML = '<i class="fa fa-remove"></i>';
+
+    // Add Delete Btn to Li
+    task.appendChild(deleteTask);
+
+
+    // Add Task to Collection
+    tasks.appendChild(task);
+}
+
+/******************************************
+    Remove Task From Local Storage
+******************************************/
+
+function removeTaskFromLocalStorage(taskToRemove) {
+    console.log(taskToRemove);
+
+    let items = '';
+
+    if (localStorage.getItem('tasks') === null) {
+        items = [];
+    } else {
+        items = JSON.parse(localStorage.getItem('tasks'));
+    }
+
+    let filteredArray = items.filter( (item) => {
+        return item !== taskToRemove.textContent;
+    })
+
+    localStorage.setItem('tasks', JSON.stringify(filteredArray));
+}
+
+/******************************************
+    Clear All Tasks Local Storage
+******************************************/
+function clearAllTasks() {
+    localStorage.clear();
+}
+
